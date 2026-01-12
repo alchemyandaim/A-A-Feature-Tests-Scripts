@@ -28,7 +28,7 @@ A feature test step is responsible for triggering the execution of the k6 Browse
 #### 1/3) A+A Feature Test Secret Token
 The secret token should be a random string assigned as a constant in your `wp-config.php` file:
 
-* GitHub Secret Key Name: `AAFT_SECRET_TOKEN`
+* GitHub Secret Key Name in GitHub Repo: `AAFT_SECRET_TOKEN`
 
 ```php
 /* A+A Feature Tests Secret Token
@@ -45,7 +45,7 @@ define( 'AAFT_SECRET_TOKEN', 'XXXxxxxxxxxxXXX' );
 Grafana k6 also uses an API key. This key should belong to the A-A-Feature-Tests-Scripts under GitHub Actions secrets.
 It does not need to be registered through WordPress
 
-* GitHub Secret Key Name: `K6_CLOUD_TOKEN`
+* Grafana k6 API Key Name in GitHub Repo: `K6_CLOUD_TOKEN`
 
 #### 3/3) GitHub Personal Access Token
 
