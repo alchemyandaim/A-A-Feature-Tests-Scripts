@@ -27,19 +27,19 @@ export default async function () {
 	const page = await browser.newPage();
 
 	try {
-		await page.goto(__ENV.TARGET_URL, { waitUntil: 'networkidle' });
+		await page.goto( __ENV.TARGET_URL, { waitUntil: 'networkidle' });
 
-		await page.locator(__ENV.NAME_SELECTOR).fill('Test User');
-		await page.locator(__ENV.EMAIL_SELECTOR).fill('test@example.com');
-		await page.locator(__ENV.MESSAGE_SELECTOR).fill('Hello');
+		await page.locator('#input_1_1').fill('Test User');
+		await page.locator('#input_1_3').fill('test@example.com');
+		await page.locator('#input_1_4').fill('Hello');
 
 		await Promise.all([
 			page.waitForNavigation(),
-			page.locator(__ENV.SUBMIT_SELECTOR).click(),
+			page.locator('#gform_submit_button_1').click(),
 		]);
 
 		const text = await page.locator('body').innerText();
-		const ok = text.includes(__ENV.EXPECTED_TEXT);
+		const ok = text.includes( __ENV.EXPECTED_TEXT );
 
 		result.assertions.push({
 			name: 'Expected confirmation text found',
@@ -63,7 +63,7 @@ export default async function () {
 		{
 			headers: {
 				'Content-Type': 'application/json',
-				'X-AAFT-Token': __ENV.AAFT_TOKEN,
+				'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN,
 			},
 		}
 	);

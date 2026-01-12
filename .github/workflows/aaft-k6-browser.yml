@@ -21,21 +21,17 @@ jobs:
         env:
           K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
 
-          AAFT_RUN_ID: ${{ github.event.client_payload.run_id }}
+          AAFT_SECRET_TOKEN: ${{ secrets.AAFT_SECRET_TOKEN }}
+          AAFT_CALLBACK: ${{ github.event.client_payload.callback }}
+
+          AAFT_TEST_ID: ${{ github.event.client_payload.test_id }}
           AAFT_STEP_ID: ${{ github.event.client_payload.step_id }}
           AAFT_STEP_CLASS_NAME: ${{ github.event.client_payload.step_class_name }}
-          AAFT_CALLBACK: ${{ github.event.client_payload.callback }}
-          AAFT_TOKEN: ${{ secrets.AAFT_TOKEN }}
+          SCRIPT_PATH: ${{ github.event.client_payload.script }}
 
           TARGET_URL: ${{ github.event.client_payload.target_url }}
           EXPECTED_TEXT: ${{ github.event.client_payload.expected_text }}
 
-          NAME_SELECTOR: ${{ github.event.client_payload.selectors.name }}
-          EMAIL_SELECTOR: ${{ github.event.client_payload.selectors.email }}
-          MESSAGE_SELECTOR: ${{ github.event.client_payload.selectors.message }}
-          SUBMIT_SELECTOR: ${{ github.event.client_payload.selectors.submit }}
-
-          SCRIPT_PATH: ${{ github.event.client_payload.script }}
 
         run: |
           k6 cloud $SCRIPT_PATH
