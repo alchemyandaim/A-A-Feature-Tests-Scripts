@@ -1,0 +1,41 @@
+name: AAFT – k6 Browser Step
+
+on:
+  repository_dispatch:
+    types: [aaft_k6_step]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Run k6 browser step
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+
+          AAFT_RUN_ID: ${{ github.event.client_payload.run_id }}
+          AAFT_STEP_ID: ${{ github.event.client_payload.step_id }}
+          AAFT_STEP_CLASS_NAME: ${{ github.event.client_payload.step_class_name }}
+          AAFT_CALLBACK: ${{ github.event.client_payload.callback }}
+          AAFT_TOKEN: ${{ secrets.AAFT_TOKEN }}
+
+          TARGET_URL: ${{ github.event.client_payload.target_url }}
+          EXPECTED_TEXT: ${{ github.event.client_payload.expected_text }}
+
+          NAME_SELECTOR: ${{ github.event.client_payload.selectors.name }}
+          EMAIL_SELECTOR: ${{ github.event.client_payload.selectors.email }}
+          MESSAGE_SELECTOR: ${{ github.event.client_payload.selectors.message }}
+          SUBMIT_SELECTOR: ${{ github.event.client_payload.selectors.submit }}
+
+          SCRIPT_PATH: ${{ github.event.client_payload.script }}
+
+        run: |
+          k6 cloud $SCRIPT_PATH
