@@ -43,7 +43,11 @@ define( 'AAFT_SECRET_TOKEN', 'XXXxxxxxxxxxXXX' );
 #### 2/3) Grafana k6 API Key
 
 Grafana k6 also uses an API key. This key should belong to the A-A-Feature-Tests-Scripts under GitHub Actions secrets.
-It does not need to be registered through WordPress
+It does not need to be registered through WordPress.
+
+To get the Grafana API key: Visit Grafana's website and sign in. Select a "stack" of your choice, where tests will be stored.
+From there, navigate to Administration > Service Accounts and select the service account for k6. It should have full access to the role "
+Performance Testing (k6)"
 
 * Grafana k6 API Key Name in GitHub Repo: `K6_CLOUD_TOKEN`
 
