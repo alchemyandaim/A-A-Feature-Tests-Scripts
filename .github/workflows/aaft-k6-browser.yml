@@ -40,4 +40,4 @@ jobs:
           EXPECTED_TEXT: ${{ github.event.client_payload.expected_text }}
 
         with:
-          path: ${{ github.event.client_payload.script }}
+          path: ./${{ github.event.client_payload.script }}
