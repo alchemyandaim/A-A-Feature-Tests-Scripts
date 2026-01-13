@@ -1,5 +1,3 @@
-name: AAFT – k6 Browser Step
-
 on:
   repository_dispatch:
     types: [aaft_k6_step]
@@ -12,26 +10,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install k6
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y k6
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
 
       - name: Run k6 browser step
+        uses: grafana/run-k6-action@v1
         env:
+          # Grafana Cloud
           K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
 
+          # AAFT shared secret
           AAFT_SECRET_TOKEN: ${{ secrets.AAFT_SECRET_TOKEN }}
           AAFT_CALLBACK: ${{ github.event.client_payload.callback }}
 
+          # AAFT identifiers
           AAFT_TEST_ID: ${{ github.event.client_payload.test_id }}
           AAFT_STEP_ID: ${{ github.event.client_payload.step_id }}
           AAFT_STEP_CLASS_NAME: ${{ github.event.client_payload.step_class_name }}
-          SCRIPT_PATH: ${{ github.event.client_payload.script }}
 
+          # Step-specific params
           TARGET_URL: ${{ github.event.client_payload.target_url }}
           EXPECTED_TEXT: ${{ github.event.client_payload.expected_text }}
 
-
-        run: |
-          k6 cloud $SCRIPT_PATH
+        with:
+          path: ${{ github.event.client_payload.script }}
