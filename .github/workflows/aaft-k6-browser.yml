@@ -19,6 +19,10 @@ jobs:
           ls -la
           ls -la k6 || true
 
+      - name: Debug glob
+        run: |
+          ls ./${{ github.event.client_payload.script }}
+
       - name: Run k6 browser step
         uses: grafana/run-k6-action@v1
         env:
@@ -40,4 +44,5 @@ jobs:
           EXPECTED_TEXT: ${{ github.event.client_payload.expected_text }}
 
         with:
-          path: ./${{ github.event.client_payload.script }}
+          path: |
+            ./${{ github.event.client_payload.script }}
