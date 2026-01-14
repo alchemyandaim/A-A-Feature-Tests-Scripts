@@ -19,14 +19,14 @@ jobs:
       #     ls -la
       #     ls -la k6 || true
 
-      - name: Debug Grafana vars
-        env:
-          # Grafana Cloud
-          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-        run: |
-          echo "K6_CLOUD_PROJECT_ID length=${#K6_CLOUD_PROJECT_ID}"
-          echo "K6_CLOUD_TOKEN length=${#K6_CLOUD_TOKEN}"
+      # - name: Debug Grafana vars
+      #   env:
+      #     # Grafana Cloud
+      #     K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+      #     K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+      #   run: |
+      #     echo "K6_CLOUD_PROJECT_ID length=${#K6_CLOUD_PROJECT_ID}"
+      #     echo "K6_CLOUD_TOKEN length=${#K6_CLOUD_TOKEN}"
 
       - name: Run k6 browser step
         uses: grafana/run-k6-action@v1
@@ -34,24 +34,19 @@ jobs:
         with:
           path: |
             ./${{ github.event.client_payload.script }}
-          # flags: --env AAFT_SECRET_TOKEN=${{ github.event.client_payload.AAFT_SECRET_TOKEN }} --env AAFT_CALLBACK=${{ github.event.client_payload.callback }} --env AAFT_TEST_ID=${{ github.event.client_payload.test_id }} --env AAFT_STEP_ID=${{ github.event.client_payload.step_id }} --env AAFT_STEP_CLASS_NAME=${{ github.event.client_payload.step_class_name }} --env TARGET_URL=${{ github.event.client_payload.target_url }} --env EXPECTED_TEXT='${{ github.event.client_payload.expected_text }}'
-          flags: --include-system-env-vars
           cloud-run-locally: false
 
+          # Passed to running script
+          flags: >
+            --env AAFT_SECRET_TOKEN=${{ secrets.AAFT_SECRET_TOKEN }}
+            --env AAFT_CALLBACK=${{ github.event.client_payload.callback }}
+            --env AAFT_TEST_ID=${{ github.event.client_payload.test_id }}
+            --env AAFT_STEP_ID=${{ github.event.client_payload.step_id }}
+            --env AAFT_STEP_CLASS_NAME=${{ github.event.client_payload.step_class_name }}
+            --env TARGET_URL=${{ github.event.client_payload.target_url }}
+            --env EXPECTED_TEXT=${{ github.event.client_payload.expected_text }}
+
         env:
-          # Grafana Cloud
+          # Passed to Grafana Cloud
           K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
           K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-
-          # AAFT shared secret
-          AAFT_SECRET_TOKEN: ${{ secrets.AAFT_SECRET_TOKEN }}
-          AAFT_CALLBACK: ${{ github.event.client_payload.callback }}
-
-          # AAFT identifiers
-          AAFT_TEST_ID: ${{ github.event.client_payload.test_id }}
-          AAFT_STEP_ID: ${{ github.event.client_payload.step_id }}
-          AAFT_STEP_CLASS_NAME: ${{ github.event.client_payload.step_class_name }}
-
-          # Step-specific params
-          TARGET_URL: ${{ github.event.client_payload.target_url }}
-          EXPECTED_TEXT: ${{ github.event.client_payload.expected_text }}
