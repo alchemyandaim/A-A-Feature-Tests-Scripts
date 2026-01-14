@@ -115,7 +115,7 @@ export default async function () {
 
 	// Send results back to A+A Feature Tests plugin via callback URL
 	if ( settings.callback ) {
-		log(result, 'info', `Sending results to callback URL ${settings.callback} with AAFT token: ${__ENV.AAFT_SECRET_TOKEN}`);
+		log(result, 'info', `Sending results to callback URL "${settings.callback}"`);
 
 		const response = http.post(
 			settings.callback,
