@@ -1,6 +1,6 @@
 import { browser } from 'k6/browser';
 import http from 'k6/http';
-import encoding from 'k6/encoding';
+import { aaft_get_client_data } from './includes/global.js';
 
 export const options = {
 	scenarios: {
@@ -21,6 +21,24 @@ export const options = {
 
 export default async function () {
 
+	let client_data = aaft_get_client_data();
+	console.log('- Client Data (Before settings) -', client_data);
+
+	let settings = {
+		"test_id":          client_data.test_id         ?? null,
+		"step_id":          client_data.step_id         ?? null,
+		"step_class_name":  client_data.step_class_name ?? null,
+		"callback":         client_data.callback        ?? null,
+		"script":           client_data.script          ?? null,
+		"target_url":       client_data.target_url      ?? null,
+		"expected_text":    client_data.expected_text   ?? null,
+	};
+
+	console.log('- Client Data Settings -', settings);
+
+	throw new Error('Skipped test execution for debugging purposes.');
+
+	/*
 	console.log('- Debug env variables (All) -', JSON.stringify(__ENV));
 
 	let provided_data = __ENV.AAFT_DATA ?? false;
@@ -58,6 +76,7 @@ export default async function () {
 	}else {
 		console.log('- Raw data was invalid -' );
 	}
+	*/
 
 	/** @TODO: Why are these variables not available in the Environment tab in k6 Cloud UI?
 	 *
