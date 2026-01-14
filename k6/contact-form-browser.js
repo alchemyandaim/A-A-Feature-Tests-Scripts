@@ -11,13 +11,21 @@ export const options = {
 			},
 		},
 	},
+	/*
 	cloud: {
 		projectID: __ENV.K6_CLOUD_PROJECT_ID,
 	}
+	*/
 };
 
 export default async function () {
 
+	/** @TODO: Why are these variables not available in the Environment tab in k6 Cloud UI?
+	 *
+	 * 🚨 time="2026-01-14T00:45:43Z" level=info msg="- Debug Environment Variables -
+	 * {\"AAFT_CALLBACK\":null,\"AAFT_SECRET_TOKEN\":null,\"AAFT_STEP_CLASS_NAME\":null,\"AAFT_STEP_ID\":null,
+	 *  \"AAFT_TEST_ID\":null,\"EXPECTED_TEXT\":null,\"TARGET_URL\":null}"
+	 * */
 	console.log('- Debug Environment Variables -', {
 		AAFT_TEST_ID: __ENV.AAFT_TEST_ID,
 		AAFT_STEP_ID: __ENV.AAFT_STEP_ID,
