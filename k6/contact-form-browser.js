@@ -31,6 +31,11 @@ export default async function () {
 		let decoded_data = '';
 		try {
 
+			// 0. Remove wrapping quotes if present (otherwise will break decoding)
+			if ( provided_data.startsWith('"') && provided_data.endsWith('"') ) {
+				provided_data = provided_data.slice(1, -1);
+			}
+
 			// 1. Decode base64 to JSON string
 			// Attempt 1 (failed): atob is not defined in Grafana k6, use encoding module instead
 			// -- decoded_data = atob(provided_data);
