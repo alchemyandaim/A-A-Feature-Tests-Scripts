@@ -11,6 +11,9 @@ export const options = {
 			},
 		},
 	},
+	cloud: {
+		projectID: __ENV.K6_CLOUD_PROJECT_ID,
+	}
 };
 
 export default async function () {
