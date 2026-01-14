@@ -34,7 +34,8 @@ jobs:
         with:
           path: |
             ./${{ github.event.client_payload.script }}
-          flags: --env AAFT_SECRET_TOKEN=${{ github.event.client_payload.AAFT_SECRET_TOKEN }} --env AAFT_CALLBACK=${{ github.event.client_payload.callback }} --env AAFT_TEST_ID=${{ github.event.client_payload.test_id }} --env AAFT_STEP_ID=${{ github.event.client_payload.step_id }} --env AAFT_STEP_CLASS_NAME=${{ github.event.client_payload.step_class_name }} --env TARGET_URL=${{ github.event.client_payload.target_url }} --env EXPECTED_TEXT='${{ github.event.client_payload.expected_text }}'
+          # flags: --env AAFT_SECRET_TOKEN=${{ github.event.client_payload.AAFT_SECRET_TOKEN }} --env AAFT_CALLBACK=${{ github.event.client_payload.callback }} --env AAFT_TEST_ID=${{ github.event.client_payload.test_id }} --env AAFT_STEP_ID=${{ github.event.client_payload.step_id }} --env AAFT_STEP_CLASS_NAME=${{ github.event.client_payload.step_class_name }} --env TARGET_URL=${{ github.event.client_payload.target_url }} --env EXPECTED_TEXT='${{ github.event.client_payload.expected_text }}'
+          flags: --include-system-env-vars
           cloud-run-locally: false
 
         env:
