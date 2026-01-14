@@ -14,6 +14,12 @@ export const options = {
 	},
 };
 
+// Log a message to the result logs
+function log(result, level, message) {
+	result.logs.push({ level, message });
+	console.log(`[${level}] ${message}`);
+}
+
 export default async function () {
 
 	// Get settings provided by the A+A Feature Tests plugin
@@ -44,17 +50,35 @@ export default async function () {
 
 	try {
 		// Go to the contact form page URL
+		log(result, 'info', `Navigating to ${settings.target_url}`);
 		await page.goto( settings.target_url, { waitUntil: 'networkidle' });
 
-		// Fill out and submit the contact form
+		// Wait until the form elements are available
+		await page.locator('#input_1_1').waitFor({ timeout: 5000 });
+		await page.locator('#input_1_3').waitFor({ timeout: 5000 });
+		await page.locator('#input_1_4').waitFor({ timeout: 5000 });
+		log(result, 'info', 'All form fields found');
+
+		// Fill out the form fields
 		await page.locator('#input_1_1').fill('Test User');
 		await page.locator('#input_1_3').fill('test@example.com');
 		await page.locator('#input_1_4').fill('Hello');
+		log(result, 'info', 'Form filled');
 
+		// Submit the form
+		await page.locator('#gform_submit_button_1').click();
+		log(result, 'info', 'Submit button clicked');
+
+		// Wait for confirmation
+		await page.waitForSelector('.gform_confirmation_message', { timeout: 10000 });
+		log(result, 'info', 'Confirmation message appeared');
+
+		/*
 		await Promise.all([
 			page.waitForNavigation(),
 			page.locator('#gform_submit_button_1').click(),
 		]);
+		*/
 
 		// Check for expected confirmation text
 		const text = await page.locator('body').innerText();
@@ -66,6 +90,12 @@ export default async function () {
 			passed: ok,
 		});
 
+		if ( ok ) {
+			log(result, 'info', `Expected text found in gform confirmation`);
+		}else{
+			log(result, 'error', `Expected was NOT found in the gform confirmation`);
+		}
+
 		// Mark step as failed if assertion did not pass
 		if ( ! ok ) result.status = 'failed';
 
@@ -73,7 +103,7 @@ export default async function () {
 
 		// Handle any errors during the test execution
 		result.status = 'failed';
-		result.logs.push({ level: 'error', message: e.message });
+		log(result, 'error', e.message);
 
 	} finally {
 
@@ -84,11 +114,21 @@ export default async function () {
 
 	// Send results back to A+A Feature Tests plugin via callback URL
 	if ( settings.callback ) {
-		http.post( settings.callback, JSON.stringify(result), {
-			headers: {
-				'Content-Type': 'application/json',
-				'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN,
-			},
-		});
+		log(result, 'info', `Sending results to callback URL ${settings.callback} with AAFT token: ${__ENV.AAFT_SECRET_TOKEN}`);
+
+		const response = http.post(
+			settings.callback,
+			JSON.stringify(result),
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN,
+				},
+			}
+		);
+
+		log(result,
+			response.status === 200 ? 'info' : 'error',
+			`Callback response status code: ${response.status} and body: ${response.body}`);
 	}
 }
