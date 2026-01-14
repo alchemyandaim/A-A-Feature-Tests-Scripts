@@ -20,12 +20,39 @@ export const options = {
 
 export default async function () {
 
+	console.log('- Debug env variables (All) -', JSON.stringify(__ENV));
+
+	let provided_data = __ENV.AAFT_DATA ?? false;
+	console.log('- Raw data -', provided_data);
+
+	if ( provided_data ) {
+		// provided_data is base64 encoded JSON string, decode it
+		let decoded_data = '';
+		try {
+			decoded_data = atob(provided_data);
+			console.log('- Decoded data -', decoded_data);
+
+			let data_obj = JSON.parse(decoded_data);
+			console.log('- Parsed data object -', data_obj);
+
+			// Now you can access individual properties
+			console.log('- TARGET_URL from data object -', data_obj.TARGET_URL);
+			console.log('- EXPECTED_TEXT from data object -', data_obj.EXPECTED_TEXT);
+
+		} catch (e) {
+			console.log('- Error decoding or parsing data -', e.message);
+		}
+	}else {
+		console.log('- Raw data was invalid -' );
+	}
+
 	/** @TODO: Why are these variables not available in the Environment tab in k6 Cloud UI?
 	 *
 	 * 🚨 time="2026-01-14T00:45:43Z" level=info msg="- Debug Environment Variables -
 	 * {\"AAFT_CALLBACK\":null,\"AAFT_SECRET_TOKEN\":null,\"AAFT_STEP_CLASS_NAME\":null,\"AAFT_STEP_ID\":null,
 	 *  \"AAFT_TEST_ID\":null,\"EXPECTED_TEXT\":null,\"TARGET_URL\":null}"
 	 * */
+	/*
 	console.log('- Debug Environment Variables -', {
 		AAFT_TEST_ID: __ENV.AAFT_TEST_ID,
 		AAFT_STEP_ID: __ENV.AAFT_STEP_ID,
@@ -35,6 +62,7 @@ export default async function () {
 		TARGET_URL: __ENV.TARGET_URL,
 		EXPECTED_TEXT: __ENV.EXPECTED_TEXT,
 	});
+	*/
 
 	const result = {
 		test_id: __ENV.AAFT_TEST_ID,
