@@ -12,104 +12,41 @@ export const options = {
 			},
 		},
 	},
-	/*
-	cloud: {
-		projectID: __ENV.K6_CLOUD_PROJECT_ID,
-	}
-	*/
 };
 
 export default async function () {
 
-	let client_data = aaft_get_client_data();
-	console.log('- Client Data (Before settings) -', client_data);
+	// Get settings provided by the A+A Feature Tests plugin
+	let s = aaft_get_client_data();
 
-	let settings = {
-		"test_id":          client_data.test_id         ?? null,
-		"step_id":          client_data.step_id         ?? null,
-		"step_class_name":  client_data.step_class_name ?? null,
-		"callback":         client_data.callback        ?? null,
-		"script":           client_data.script          ?? null,
-		"target_url":       client_data.target_url      ?? null,
-		"expected_text":    client_data.expected_text   ?? null,
+	const settings = {
+		test_id:         s.test_id         ?? null,
+		step_id:         s.step_id         ?? null,
+		step_class_name: s.step_class_name ?? null,
+		callback:        s.callback        ?? null,
+		script:          s.script          ?? null,
+		target_url:      s.target_url      ?? null,
+		expected_text:   s.expected_text   ?? null,
 	};
 
-	console.log('- Client Data Settings -', settings);
-
-	throw new Error('Skipped test execution for debugging purposes.');
-
-	/*
-	console.log('- Debug env variables (All) -', JSON.stringify(__ENV));
-
-	let provided_data = __ENV.AAFT_DATA ?? false;
-	console.log('- Raw data -', provided_data);
-
-	if ( provided_data ) {
-		// provided_data is base64 encoded JSON string, decode it
-		let decoded_data = '';
-		try {
-
-			// 0. Remove wrapping quotes if present (otherwise will break decoding)
-			if ( provided_data.startsWith('"') && provided_data.endsWith('"') ) {
-				provided_data = provided_data.slice(1, -1);
-			}
-
-			// 1. Decode base64 to JSON string
-			// Attempt 1 (failed): atob is not defined in Grafana k6, use encoding module instead
-			// -- decoded_data = atob(provided_data);
-
-			// Attempt 2: using k6 encoding module
-			decoded_data = encoding.b64decode( provided_data, 'std', 's' );
-			console.log('- Decoded data -', decoded_data);
-
-			// 2. Parse JSON string to object
-			let data_obj = JSON.parse(decoded_data);
-			console.log('- Parsed data object -', data_obj);
-
-			// Now you can access individual properties
-			console.log('- TARGET_URL from data object -', data_obj.TARGET_URL ?? null);
-			console.log('- EXPECTED_TEXT from data object -', data_obj.EXPECTED_TEXT ?? null);
-
-		} catch (e) {
-			console.log('- Error decoding or parsing data -', e.message);
-		}
-	}else {
-		console.log('- Raw data was invalid -' );
-	}
-	*/
-
-	/** @TODO: Why are these variables not available in the Environment tab in k6 Cloud UI?
-	 *
-	 * 🚨 time="2026-01-14T00:45:43Z" level=info msg="- Debug Environment Variables -
-	 * {\"AAFT_CALLBACK\":null,\"AAFT_SECRET_TOKEN\":null,\"AAFT_STEP_CLASS_NAME\":null,\"AAFT_STEP_ID\":null,
-	 *  \"AAFT_TEST_ID\":null,\"EXPECTED_TEXT\":null,\"TARGET_URL\":null}"
-	 * */
-	/*
-	console.log('- Debug Environment Variables -', {
-		AAFT_TEST_ID: __ENV.AAFT_TEST_ID,
-		AAFT_STEP_ID: __ENV.AAFT_STEP_ID,
-		AAFT_STEP_CLASS_NAME: __ENV.AAFT_STEP_CLASS_NAME,
-		AAFT_CALLBACK: __ENV.AAFT_CALLBACK,
-		AAFT_SECRET_TOKEN: __ENV.AAFT_SECRET_TOKEN,
-		TARGET_URL: __ENV.TARGET_URL,
-		EXPECTED_TEXT: __ENV.EXPECTED_TEXT,
-	});
-	*/
-
+	// Prepare the result to be returned back to the A+A Feature Tests plugin
 	const result = {
-		test_id: __ENV.AAFT_TEST_ID,
-		step_id: __ENV.AAFT_STEP_ID,
-		step_class_name: __ENV.AAFT_STEP_CLASS_NAME,
+		test_id: settings.test_id,
+		step_id: settings.step_id,
+		step_class_name: settings.step_class_name,
 		status: 'passed',
 		assertions: [],
 		logs: [],
 	};
 
+	// Start browser interaction
 	const page = await browser.newPage();
 
 	try {
-		await page.goto( __ENV.TARGET_URL, { waitUntil: 'networkidle' });
+		// Go to the contact form page URL
+		await page.goto( settings.target_url, { waitUntil: 'networkidle' });
 
+		// Fill out and submit the contact form
 		await page.locator('#input_1_1').fill('Test User');
 		await page.locator('#input_1_3').fill('test@example.com');
 		await page.locator('#input_1_4').fill('Hello');
@@ -119,33 +56,39 @@ export default async function () {
 			page.locator('#gform_submit_button_1').click(),
 		]);
 
+		// Check for expected confirmation text
 		const text = await page.locator('body').innerText();
-		const ok = text.includes( __ENV.EXPECTED_TEXT );
+		const ok = text.includes( settings.expected_text );
 
+		// Record the assertion result
 		result.assertions.push({
 			name: 'Expected confirmation text found',
 			passed: ok,
 		});
 
-		if ( ! ok ) {
-			result.status = 'failed';
-		}
+		// Mark step as failed if assertion did not pass
+		if ( ! ok ) result.status = 'failed';
 
 	} catch (e) {
+
+		// Handle any errors during the test execution
 		result.status = 'failed';
 		result.logs.push({ level: 'error', message: e.message });
+
 	} finally {
+
+		// Close the browser page
 		await page.close();
+
 	}
 
-	http.post(
-		__ENV.AAFT_CALLBACK,
-		JSON.stringify(result),
-		{
+	// Send results back to A+A Feature Tests plugin via callback URL
+	if ( settings.callback ) {
+		http.post( settings.callback, JSON.stringify(result), {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN,
 			},
-		}
-	);
+		});
+	}
 }

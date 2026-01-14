@@ -1,5 +1,10 @@
 import encoding from 'k6/encoding';
 
+/**
+ * Returns an object containing parameters passed to the test via `client_payload.data`, which is a base64-encoded JSON string stored in the `AAFT_DATA` environment variable.
+ *
+ * @returns {*}
+ */
 export function aaft_get_client_data() {
 	if ( !__ENV.AAFT_DATA ) {
 		throw new Error('AAFT_DATA environment variable is missing');
