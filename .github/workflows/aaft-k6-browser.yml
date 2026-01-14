@@ -13,15 +13,16 @@ jobs:
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
 
-      - name: Debug files
-        run: |
-          pwd
-          ls -la
-          ls -la k6 || true
+      # - name: Debug files
+      #   run: |
+      #     pwd
+      #     ls -la
+      #     ls -la k6 || true
 
-      - name: Debug glob
+      - name: Debug Grafana vars
         run: |
-          ls ./${{ github.event.client_payload.script }}
+          echo "K6_CLOUD_PROJECT_ID=$K6_CLOUD_PROJECT_ID"
+          echo "K6_CLOUD_TOKEN length=${#K6_CLOUD_TOKEN}"
 
       - name: Run k6 browser step
         uses: grafana/run-k6-action@v1
