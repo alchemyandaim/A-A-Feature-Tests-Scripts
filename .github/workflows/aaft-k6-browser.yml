@@ -30,6 +30,13 @@ jobs:
 
       - name: Run k6 browser step
         uses: grafana/run-k6-action@v1
+
+        with:
+          path: |
+            ./${{ github.event.client_payload.script }}
+          flags: --env AAFT_SECRET_TOKEN=${{ github.event.client_payload.AAFT_SECRET_TOKEN }} --env AAFT_CALLBACK=${{ github.event.client_payload.callback }} --env AAFT_TEST_ID=${{ github.event.client_payload.test_id }} --env AAFT_STEP_ID=${{ github.event.client_payload.step_id }} --env AAFT_STEP_CLASS_NAME=${{ github.event.client_payload.step_class_name }} --env TARGET_URL=${{ github.event.client_payload.target_url }} --env EXPECTED_TEXT='${{ github.event.client_payload.expected_text }}'
+          cloud-run-locally: false
+
         env:
           # Grafana Cloud
           K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
@@ -47,16 +54,3 @@ jobs:
           # Step-specific params
           TARGET_URL: ${{ github.event.client_payload.target_url }}
           EXPECTED_TEXT: ${{ github.event.client_payload.expected_text }}
-
-        with:
-          path: |
-            ./${{ github.event.client_payload.script }}
-          flags: |
-            --env AAFT_SECRET_TOKEN=${{ github.event.client_payload.AAFT_SECRET_TOKEN }} 
-            --env AAFT_CALLBACK=${{ github.event.client_payload.callback }} 
-            --env AAFT_TEST_ID=${{ github.event.client_payload.test_id }} 
-            --env AAFT_STEP_ID=${{ github.event.client_payload.step_id }} 
-            --env AAFT_STEP_CLASS_NAME=${{ github.event.client_payload.step_class_name }} 
-            --env TARGET_URL=${{ github.event.client_payload.target_url }} 
-            --env EXPECTED_TEXT='${{ github.event.client_payload.expected_text }}'
-          cloud-run-locally: false
