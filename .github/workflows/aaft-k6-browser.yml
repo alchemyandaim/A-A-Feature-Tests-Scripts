@@ -51,4 +51,4 @@ jobs:
         with:
           path: |
             ./${{ github.event.client_payload.script }}
-          cloud-run-locally: true
+          cloud-run-locally: false
