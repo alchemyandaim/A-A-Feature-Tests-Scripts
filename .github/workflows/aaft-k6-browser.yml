@@ -37,7 +37,7 @@ jobs:
           cloud-run-locally: false
 
           # Passed to running script
-          flags: --env AAFT_DATA="${{ github.event.client_payload.data }}"
+          flags: --env AAFT_DATA=${{ github.event.client_payload.data }}
           # flags: >
           #  --env AAFT_SECRET_TOKEN="${{ secrets.AAFT_SECRET_TOKEN }}"
           #  --env AAFT_CALLBACK="${{ github.event.client_payload.callback }}"
