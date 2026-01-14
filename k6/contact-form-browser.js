@@ -1,5 +1,6 @@
 import { browser } from 'k6/browser';
 import http from 'k6/http';
+import encoding from 'k6/encoding';
 
 export const options = {
 	scenarios: {
@@ -29,15 +30,22 @@ export default async function () {
 		// provided_data is base64 encoded JSON string, decode it
 		let decoded_data = '';
 		try {
-			decoded_data = atob(provided_data);
+
+			// 1. Decode base64 to JSON string
+			// Attempt 1 (failed): atob is not defined in Grafana k6, use encoding module instead
+			// -- decoded_data = atob(provided_data);
+
+			// Attempt 2: using k6 encoding module
+			decoded_data = encoding.b64decode( provided_data, 'std', 's' );
 			console.log('- Decoded data -', decoded_data);
 
+			// 2. Parse JSON string to object
 			let data_obj = JSON.parse(decoded_data);
 			console.log('- Parsed data object -', data_obj);
 
 			// Now you can access individual properties
-			console.log('- TARGET_URL from data object -', data_obj.TARGET_URL);
-			console.log('- EXPECTED_TEXT from data object -', data_obj.EXPECTED_TEXT);
+			console.log('- TARGET_URL from data object -', data_obj.TARGET_URL ?? null);
+			console.log('- EXPECTED_TEXT from data object -', data_obj.EXPECTED_TEXT ?? null);
 
 		} catch (e) {
 			console.log('- Error decoding or parsing data -', e.message);
