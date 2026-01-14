@@ -15,9 +15,9 @@ export const options = {
 };
 
 // Log a message to the result logs
-function log(result, level, message) {
-	result.logs.push({ level, message });
-	console.log(`[${level}] ${message}`);
+function log(result, code, message) {
+	result.logs.push({ code: code, message: message });
+	console.log(`[${code}] ${message}`);
 }
 
 export default async function () {
