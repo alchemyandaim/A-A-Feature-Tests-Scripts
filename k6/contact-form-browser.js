@@ -13,8 +13,12 @@ export const options = {
 	},
 	cloud: {
 		projectID: __ENV.K6_CLOUD_PROJECT_ID,
-	},
-	env: {
+	}
+};
+
+export default async function () {
+
+	console.log('- Debug Environment Variables -', {
 		AAFT_TEST_ID: __ENV.AAFT_TEST_ID,
 		AAFT_STEP_ID: __ENV.AAFT_STEP_ID,
 		AAFT_STEP_CLASS_NAME: __ENV.AAFT_STEP_CLASS_NAME,
@@ -22,10 +26,7 @@ export const options = {
 		AAFT_SECRET_TOKEN: __ENV.AAFT_SECRET_TOKEN,
 		TARGET_URL: __ENV.TARGET_URL,
 		EXPECTED_TEXT: __ENV.EXPECTED_TEXT,
-	},
-};
-
-export default async function () {
+	});
 
 	const result = {
 		test_id: __ENV.AAFT_TEST_ID,
