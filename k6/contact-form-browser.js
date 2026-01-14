@@ -104,6 +104,7 @@ export default async function () {
 		// Handle any errors during the test execution
 		result.status = 'failed';
 		log(result, 'error', e.message);
+		log(result, 'error (as json)', JSON.stringify(e));
 
 	} finally {
 
