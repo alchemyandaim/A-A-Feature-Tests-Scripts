@@ -1,6 +1,19 @@
 import encoding from 'k6/encoding';
 
 /**
+ * Strips wrapping double quotes from a string, if present.
+ *
+ * @param str
+ * @returns {*}
+ */
+export function aaft_strip_quotes( str ) {
+	if ( str.startsWith('"') && str.endsWith('"') ) {
+		return str.slice(1, -1);
+	}
+	return str;
+}
+
+/**
  * Returns an object containing parameters passed to the test via `client_payload.data`, which is a base64-encoded JSON string stored in the `AAFT_DATA` environment variable.
  *
  * @returns {*}
@@ -13,9 +26,7 @@ export function aaft_get_client_data() {
 	let raw = __ENV.AAFT_DATA;
 
 	// Remove wrapping quotes if present (otherwise will break decoding)
-	if ( raw.startsWith('"') && raw.endsWith('"') ) {
-		raw = raw.slice(1, -1);
-	}
+	raw = aaft_strip_quotes( raw );
 
 	// Decode base64 to JSON string
 	let decoded;

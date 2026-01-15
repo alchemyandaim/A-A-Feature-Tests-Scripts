@@ -1,6 +1,6 @@
 import { browser } from 'k6/browser';
 import http from 'k6/http';
-import { aaft_get_client_data } from './includes/global.js';
+import {aaft_get_client_data, aaft_strip_quotes} from './includes/global.js';
 
 export const options = {
 	scenarios: {
@@ -155,16 +155,19 @@ export default async function () {
 	if ( settings.callback ) {
 		log(result, 'info', `Sending results to callback URL "${settings.callback}"`);
 
+		// Get the secret token from environment variable
+		const AAFT_SECRET_TOKEN = aaft_strip_quotes( __ENV.AAFT_SECRET_TOKEN ?? '' );
+
 		// @todo: let's try passng the token in the url
 		let callback_url = settings.callback;
-		callback_url += '?aaft_secret_token=' + encodeURIComponent( __ENV.AAFT_SECRET_TOKEN );
+		callback_url += '?aaft_secret_token=' + encodeURIComponent( AAFT_SECRET_TOKEN );
 
 		let callback_data = JSON.stringify(result);
 
 		let callback_args = {
 			headers: {
 				'Content-Type': 'application/json',
-				'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN, // @todo this might not work
+				'X-AAFT-Token': AAFT_SECRET_TOKEN, // @todo this might not work
 			},
 		};
 
