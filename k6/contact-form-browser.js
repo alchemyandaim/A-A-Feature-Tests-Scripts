@@ -157,7 +157,7 @@ export default async function () {
 
 		// @todo: let's try passng the token in the url
 		let callback_url = settings.callback;
-		callback_url += '?aaft_secret_token=' + encodeURIComponent( settings.test_id );
+		callback_url += '?aaft_secret_token=' + encodeURIComponent( __ENV.AAFT_SECRET_TOKEN );
 
 		let callback_data = JSON.stringify(result);
 
