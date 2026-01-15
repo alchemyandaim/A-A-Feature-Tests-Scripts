@@ -158,16 +158,14 @@ export default async function () {
 		// Get the secret token from environment variable
 		const AAFT_SECRET_TOKEN = aaft_strip_quotes( __ENV.AAFT_SECRET_TOKEN ?? '' );
 
-		// @todo: let's try passng the token in the url
 		let callback_url = settings.callback;
-		callback_url += '?aaft_secret_token=' + encodeURIComponent( AAFT_SECRET_TOKEN );
 
 		let callback_data = JSON.stringify(result);
 
 		let callback_args = {
 			headers: {
 				'Content-Type': 'application/json',
-				'X-AAFT-Token': AAFT_SECRET_TOKEN, // @todo this might not work
+				'X-AAFT-Token': AAFT_SECRET_TOKEN,
 			},
 		};
 
