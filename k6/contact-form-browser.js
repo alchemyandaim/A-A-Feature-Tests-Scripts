@@ -49,62 +49,100 @@ export default async function () {
 	const page = await browser.newPage();
 
 	try {
+
 		// Go to the contact form page URL
-		log(result, 'info', `Navigating to ${settings.target_url}`);
-		await page.goto( settings.target_url, { waitUntil: 'networkidle' });
-
-		// Wait until the form elements are available
-		await page.locator('#input_1_1').waitFor({ timeout: 5000 });
-		await page.locator('#input_1_3').waitFor({ timeout: 5000 });
-		await page.locator('#input_1_4').waitFor({ timeout: 5000 });
-		log(result, 'info', 'All form fields found');
-
-		// Fill out the form fields
-		await page.locator('#input_1_1').fill('Test User');
-		await page.locator('#input_1_3').fill('test@example.com');
-		await page.locator('#input_1_4').fill('Hello');
-		log(result, 'info', 'Form filled');
-
-		// Submit the form
-		await page.locator('#gform_submit_button_1').click();
-		log(result, 'info', 'Submit button clicked');
-
-		// Wait for confirmation
-		await page.waitForSelector('.gform_confirmation_message', { timeout: 10000 });
-		log(result, 'info', 'Confirmation message appeared');
-
-		/*
-		await Promise.all([
-			page.waitForNavigation(),
-			page.locator('#gform_submit_button_1').click(),
-		]);
-		*/
-
-		// Check for expected confirmation text
-		const text = await page.locator('body').innerText();
-		const ok = text.includes( settings.expected_text );
-
-		// Record the assertion result
-		result.assertions.push({
-			name: 'Expected confirmation text found',
-			passed: ok,
-		});
-
-		if ( ok ) {
-			log(result, 'info', `Expected text found in gform confirmation`);
-		}else{
-			log(result, 'error', `Expected was NOT found in the gform confirmation`);
+		try {
+			log(result, 'info', `Navigating to ${settings.target_url}`);
+			await page.goto(settings.target_url, { waitUntil: 'networkidle' });
+		} catch {
+			throw new Error(`Failed to navigate to ${settings.target_url}`);
 		}
 
-		// Mark step as failed if assertion did not pass
-		if ( ! ok ) result.status = 'failed';
+		// Wait until the form elements are available
+		try {
+			await page.locator('#input_1_1').waitFor({ timeout: 5000 });
+			await page.locator('#input_1_3').waitFor({ timeout: 5000 });
+			await page.locator('#input_1_4').waitFor({ timeout: 5000 });
+			log(result, 'info', 'All form fields found');
+		} catch {
+			throw new Error('One or more form fields not found on the page');
+		}
+
+		// Fill out the form fields
+		try {
+			await page.locator('#input_1_1').fill('Test User');
+			await page.locator('#input_1_3').fill('test@example.com');
+			await page.locator('#input_1_4').fill('Hello');
+			log(result, 'info', 'Form filled');
+		} catch {
+			throw new Error('Failed to fill out the form fields');
+		}
+
+		// Submit the form
+		let outcome;
+
+		try {
+			await page.locator('#gform_submit_button_1').click();
+			log(result, 'info', 'Submit button clicked');
+
+			// Wait for confirmation, or capture validation error
+			outcome = await Promise.race([
+				page.waitForSelector('.gform_confirmation_message', { timeout: 10000 })
+					.then(() => 'confirmation'),
+
+				page.waitForSelector('.gform_validation_errors', { timeout: 10000 })
+					.then(() => 'validation_error'),
+			]);
+		} catch {
+			throw new Error('Form submission failed or no response received (Confirmation message and validation error were not found)');
+		}
+
+		// Handle the outcome
+		let ok = false;
+
+		switch( outcome ) {
+			case 'validation_error':
+				result.status = 'failed';
+				const errorsText = await page.locator('.gform_validation_errors').innerText();
+				log(result, 'validation_error', 'A validation error occurred: ' + errorsText);
+				break;
+
+			case 'confirmation':
+				log(result, 'info', 'Form submitted successfully');
+
+				// Check for expected confirmation text
+				const text = await page.locator('body').innerText();
+				ok = text.includes( settings.expected_text );
+
+				// Record the assertion result
+				result.assertions.push({
+					name: 'Expected confirmation text found',
+					passed: ok,
+				});
+
+				// Log whether the expected text was found
+				if ( ok ) {
+					log(result, 'info', `Expected text found in gform confirmation`);
+				}else{
+					log(result, 'error', `Expected was NOT found in the gform confirmation`);
+				}
+
+				// Mark step as failed if assertion did not pass
+				if ( ! ok ) result.status = 'failed';
+				break;
+
+			default:
+				result.status = 'failed';
+				log(result, 'error', 'Unknown outcome after form submission: ' + outcome);
+				break;
+		}
 
 	} catch (e) {
 
 		// Handle any errors during the test execution
 		result.status = 'failed';
-		log(result, 'error', e.message);
-		log(result, 'error (as json)', JSON.stringify(e));
+
+		log(result, 'error', e.message ?? 'An undefined error was thrown');
 
 	} finally {
 
@@ -117,19 +155,25 @@ export default async function () {
 	if ( settings.callback ) {
 		log(result, 'info', `Sending results to callback URL "${settings.callback}"`);
 
-		const response = http.post(
-			settings.callback,
-			JSON.stringify(result),
-			{
-				headers: {
-					'Content-Type': 'application/json',
-					'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN,
-				},
-			}
-		);
+		// @todo: let's try passng the token in the url
+		let callback_url = settings.callback;
+		callback_url += '?aaft_secret_token=' + encodeURIComponent( settings.test_id );
 
-		log(result,
-			response.status === 200 ? 'info' : 'error',
-			`Callback response status code: ${response.status} and body: ${response.body}`);
+		try {
+			const response = http.post(
+				callback_url,
+				JSON.stringify(result),
+				{
+					headers: {
+						'Content-Type': 'application/json',
+						'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN, // @todo this might not work
+					},
+				}
+			);
+
+			log(result, response.status === 200 ? 'info' : 'error', `Callback response status code: ${response.status} and body: ${response.body}`);
+		} catch {
+			log(result, 'error', 'Failed to send results to callback URL');
+		}
 	}
 }
