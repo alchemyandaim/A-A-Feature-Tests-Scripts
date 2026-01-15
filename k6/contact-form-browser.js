@@ -159,16 +159,25 @@ export default async function () {
 		let callback_url = settings.callback;
 		callback_url += '?aaft_secret_token=' + encodeURIComponent( settings.test_id );
 
+		let callback_data = JSON.stringify(result);
+
+		let callback_args = {
+			headers: {
+				'Content-Type': 'application/json',
+				'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN, // @todo this might not work
+			},
+		};
+
 		try {
+			log(result, 'info', `Callback url: ${callback_url}`);
+			log(result, 'info', `Callback data: ${callback_data}`);
+			log(result, 'info', `Callback args: ${JSON.stringify(callback_args)}`);
+
+			// Perform the callback HTTP POST request
 			const response = http.post(
 				callback_url,
-				JSON.stringify(result),
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						'X-AAFT-Token': __ENV.AAFT_SECRET_TOKEN, // @todo this might not work
-					},
-				}
+				callback_data,
+				callback_args
 			);
 
 			log(result, response.status === 200 ? 'info' : 'error', `Callback response status code: ${response.status} and body: ${response.body}`);
