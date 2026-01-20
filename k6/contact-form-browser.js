@@ -146,7 +146,7 @@ export default async function () {
 
 	// Send results back to A+A Feature Tests plugin via callback URL
 	if ( settings.callback ) {
-		log(result, 'info', `Sending results to callback URL "${settings.callback}"`);
+		log(result, 'info', `Sending results to callback URL`);
 
 		// Get the secret token from environment variable
 		const AAFT_SECRET_TOKEN = aaft_strip_quotes( __ENV.AAFT_SECRET_TOKEN ?? '' );
