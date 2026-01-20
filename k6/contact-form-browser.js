@@ -1,6 +1,6 @@
 import { browser } from 'k6/browser';
 import http from 'k6/http';
-import {aaft_get_client_data, aaft_strip_quotes} from './includes/global.js';
+import {aaft_get_client_data, aaft_get_result_object, aaft_strip_quotes} from './includes/global.js';
 
 export const options = {
 	scenarios: {
@@ -36,14 +36,7 @@ export default async function () {
 	};
 
 	// Prepare the result to be returned back to the A+A Feature Tests plugin
-	const result = {
-		test_id: settings.test_id,
-		step_id: settings.step_id,
-		step_class_name: settings.step_class_name,
-		status: 'passed',
-		assertions: [],
-		logs: [],
-	};
+	const result = aaft_get_result_object( settings );
 
 	// Start browser interaction
 	const page = await browser.newPage();

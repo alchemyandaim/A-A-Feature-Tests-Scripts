@@ -46,3 +46,20 @@ export function aaft_get_client_data() {
 
 	return obj;
 }
+
+/**
+ * Get a result object template, which may be modified before being returned to the server
+ *
+ * @param settings
+ * @returns {{test_id, step_id, step_class_name, status: string, assertions: *[], logs: *[]}}
+ */
+export function aaft_get_result_object( settings ) {
+	return {
+		test_id: settings.test_id,
+		step_id: settings.step_id,
+		step_class_name: settings.step_class_name,
+		status: 'passed',
+		assertions: [],
+		logs: [],
+	};
+}
