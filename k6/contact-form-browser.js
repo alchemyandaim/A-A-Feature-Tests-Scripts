@@ -1,5 +1,4 @@
 import { browser } from 'k6/browser';
-import http from 'k6/http';
 import {aaft_get_client_data, aaft_get_result_object, aaft_strip_quotes} from './includes/global.js';
 
 export const options = {
@@ -15,10 +14,12 @@ export const options = {
 };
 
 // Log a message to the result logs
+/*
 function log(result, code, message) {
 	result.logs.push({ code: code, message: message });
 	console.log(`[${code}] ${message}`);
 }
+*/
 
 export default async function () {
 
@@ -38,6 +39,9 @@ export default async function () {
 	// Prepare the result to be returned back to the A+A Feature Tests plugin
 	const result = aaft_get_result_object( settings );
 
+	// Allow logging within the result object
+	const log = result.add_log;
+
 	// Start browser interaction
 	const page = await browser.newPage();
 
@@ -45,7 +49,7 @@ export default async function () {
 
 		// Go to the contact form page URL
 		try {
-			log(result, 'info', `Navigating to ${settings.target_url}`);
+			log('info', `Navigating to ${settings.target_url}`);
 			await page.goto(settings.target_url, { waitUntil: 'networkidle' });
 		} catch {
 			throw new Error(`Failed to navigate to ${settings.target_url}`);
@@ -56,7 +60,7 @@ export default async function () {
 			await page.locator('#input_1_1').waitFor({ timeout: 5000 });
 			await page.locator('#input_1_3').waitFor({ timeout: 5000 });
 			await page.locator('#input_1_4').waitFor({ timeout: 5000 });
-			log(result, 'info', 'All form fields found');
+			log('info', 'All form fields found');
 		} catch {
 			throw new Error('One or more form fields not found on the page');
 		}
@@ -66,7 +70,7 @@ export default async function () {
 			await page.locator('#input_1_1').fill('Test User');
 			await page.locator('#input_1_3').fill('test@example.com');
 			await page.locator('#input_1_4').fill('Hello');
-			log(result, 'info', 'Form filled');
+			log('info', 'Form filled');
 		} catch {
 			throw new Error('Failed to fill out the form fields');
 		}
@@ -76,7 +80,7 @@ export default async function () {
 
 		try {
 			await page.locator('#gform_submit_button_1').click();
-			log(result, 'info', 'Submit button clicked');
+			log('info', 'Submit button clicked');
 
 			// Wait for confirmation, or capture validation error
 			outcome = await Promise.race([
@@ -95,47 +99,44 @@ export default async function () {
 
 		switch( outcome ) {
 			case 'validation_error':
-				result.status = 'failed';
+				result.set_status('failed');
 				const errorsText = await page.locator('.gform_validation_errors').innerText();
-				log(result, 'validation_error', 'A validation error occurred: ' + errorsText);
+				log('validation_error', 'A validation error occurred: ' + errorsText);
 				break;
 
 			case 'confirmation':
-				log(result, 'info', 'Form submitted successfully');
+				log('info', 'Form submitted successfully');
 
 				// Check for expected confirmation text
 				const text = await page.locator('body').innerText();
 				ok = text.includes( settings.expected_text );
 
 				// Record the assertion result
-				result.assertions.push({
-					name: 'Expected confirmation text found',
-					passed: ok,
-				});
+				result.add_assertion( ok, 'Expected confirmation text found' );
 
 				// Log whether the expected text was found
 				if ( ok ) {
-					log(result, 'info', `Expected text found in gform confirmation`);
+					log('info', `Expected text found in gform confirmation`);
 				}else{
-					log(result, 'error', `Expected was NOT found in the gform confirmation`);
+					log('error', `Expected was NOT found in the gform confirmation`);
 				}
 
 				// Mark step as failed if assertion did not pass
-				if ( ! ok ) result.status = 'failed';
+				if ( ! ok ) result.set_status('failed');
 				break;
 
 			default:
-				result.status = 'failed';
-				log(result, 'error', 'Unknown outcome after form submission: ' + outcome);
+				result.set_status('failed');
+				log('error', 'Unknown outcome after form submission: ' + outcome);
 				break;
 		}
 
 	} catch (e) {
 
 		// Handle any errors during the test execution
-		result.status = 'failed';
+		result.set_status('failed');
 
-		log(result, 'error', e.message ?? 'An undefined error was thrown');
+		log('error', e.message ?? 'An undefined error was thrown');
 
 	} finally {
 
@@ -145,38 +146,6 @@ export default async function () {
 	}
 
 	// Send results back to A+A Feature Tests plugin via callback URL
-	if ( settings.callback ) {
-		log(result, 'info', `Sending results to callback URL`);
+	result.complete_test();
 
-		// Get the secret token from environment variable
-		const AAFT_SECRET_TOKEN = aaft_strip_quotes( __ENV.AAFT_SECRET_TOKEN ?? '' );
-
-		let callback_url = settings.callback;
-
-		let callback_data = JSON.stringify(result);
-
-		let callback_args = {
-			headers: {
-				'Content-Type': 'application/json',
-				'X-AAFT-Token': AAFT_SECRET_TOKEN,
-			},
-		};
-
-		try {
-			log(result, 'info', `Callback url: ${callback_url}`);
-			log(result, 'info', `Callback data: ${callback_data}`);
-			log(result, 'info', `Callback args: ${JSON.stringify(callback_args)}`);
-
-			// Perform the callback HTTP POST request
-			const response = http.post(
-				callback_url,
-				callback_data,
-				callback_args
-			);
-
-			log(result, response.status === 200 ? 'info' : 'error', `Callback response status code: ${response.status} and body: ${response.body}`);
-		} catch {
-			log(result, 'error', 'Failed to send results to callback URL');
-		}
-	}
 }
