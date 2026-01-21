@@ -40,6 +40,10 @@ jobs:
           flags: >
             --env AAFT_DATA=${{ github.event.client_payload.data }}
             --env AAFT_SECRET_TOKEN="${{ secrets.AAFT_SECRET_TOKEN }}"
+            --env AAFT_GITHUB_RUN_ID="${{ github.run_id }}"
+            --env AAFT_GITHUB_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            --env AAFT_GITHUB_WORKFLOW="${{ github.workflow }}"
+            --env AAFT_GITHUB_REPO="${{ github.repository }}"
 
         env:
           # Passed to Grafana Cloud

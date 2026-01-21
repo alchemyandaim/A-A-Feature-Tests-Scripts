@@ -66,12 +66,23 @@ export function aaft_create_result(settings) {
 	// Private state (NOT exposed)
 	// ─────────────────────────────
 	let data = {
+		// Identification
 		test_id: settings.test_id,
 		step_id: settings.step_id,
 		step_class_name: settings.step_class_name,
+
+		// Result data
 		status: 'passed',
 		assertions: [],
 		logs: [],
+
+		// GitHub data (from workflow .yml file)
+		github: {
+			run_id:     __ENV.AAFT_GITHUB_RUN_ID   || '',
+			run_url:    __ENV.AAFT_GITHUB_RUN_URL  || '',
+			workflow:   __ENV.AAFT_GITHUB_WORKFLOW || '',
+			repository: __ENV.AAFT_GITHUB_REPO     || '',
+		},
 	};
 
 	const callbackUrl = settings.callback;
