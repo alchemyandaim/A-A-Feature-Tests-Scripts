@@ -173,6 +173,8 @@ export function aaft_create_result(settings) {
 			url += queryString;
 			*/
 
+			log( 'debug', `Final result data: ${JSON.stringify(finalData)}` );
+
 			log('info', 'Sending results to callback');
 			log('debug', `Callback URL: ${url}`);
 
