@@ -8,9 +8,14 @@ import http from 'k6/http';
  * @returns {*}
  */
 export function aaft_strip_quotes( str ) {
+	// Trim whitespace
+	str = str.trim();
+
+	// Remove wrapping quotes
 	if ( str.startsWith('"') && str.endsWith('"') ) {
 		return str.slice(1, -1);
 	}
+
 	return str;
 }
 
@@ -78,10 +83,10 @@ export function aaft_create_result(settings) {
 
 		// GitHub data (from workflow .yml file)
 		github: {
-			run_id:     __ENV.AAFT_GITHUB_RUN_ID   || '',
-			run_url:    __ENV.AAFT_GITHUB_RUN_URL  || '',
-			workflow:   __ENV.AAFT_GITHUB_WORKFLOW || '',
-			repository: __ENV.AAFT_GITHUB_REPO     || '',
+			run_id:     aaft_strip_quotes( __ENV.AAFT_GITHUB_RUN_ID   || '' ),
+			run_url:    aaft_strip_quotes( __ENV.AAFT_GITHUB_RUN_URL  || '' ),
+			workflow:   aaft_strip_quotes( __ENV.AAFT_GITHUB_WORKFLOW || '' ),
+			repository: aaft_strip_quotes( __ENV.AAFT_GITHUB_REPO     || '' ),
 		},
 	};
 
@@ -147,9 +152,7 @@ export function aaft_create_result(settings) {
 				return;
 			}
 
-			const token = aaft_strip_quotes(
-				(__ENV.AAFT_SECRET_TOKEN ?? '').trim()
-			);
+			const token = aaft_strip_quotes( __ENV.AAFT_SECRET_TOKEN ?? '' );
 
 			// Merge extra payload data
 			const finalData = {
@@ -172,8 +175,6 @@ export function aaft_create_result(settings) {
 
 			url += queryString;
 			*/
-
-			log( 'debug', `Final result data: ${JSON.stringify(finalData)}` );
 
 			log('info', 'Sending results to callback');
 			log('debug', `Callback URL: ${url}`);
